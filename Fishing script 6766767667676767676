@@ -1,0 +1,156 @@
+using UnityEngine;
+
+public class FishData
+    {
+        public string name;
+        public float size;
+        public int rarity;
+    public FishData(string name, float size, int rarity)
+        {
+            this.name = name;
+            this.size = size;
+            this.rarity = rarity;
+        }
+    }
+public class FishingSystem : MonoBehaviour
+{
+    public enum FishingState
+    {
+        Idle,
+        Waiting,
+        Bite,
+        Reeling
+    }
+
+string [] fishNames = { "Anchovy", "Bream", "Largemouth Bass", "Red Snapper", "Trout", "Carp", "Goldfish", "Yellowfin Tuna", "Eel", "Whiptail Catfish" };
+float [] fishMSizes = {2f, 5f, 8f, 20f, 10f, 2f, 1f, 50f, 3f, 4f};
+float [] fishSSizes = {0.5f, 2f, 4f, 15f, 5f, 1f, 0.5f, 30f, 2f, 3f};
+int [] fishRarities = {1, 1, 1, 1, 1, 1, 2, 3, 4, 5};
+    public FishingState currentState = FishingState.Idle;
+
+    float waitTimer;
+    float biteTimer;
+    float reelProgress;
+
+    bool isInWaterZone = false;
+
+    [Header("Settings")]
+    public float minWaitTime = 2f;
+    public float maxWaitTime = 5f;
+    public float biteTimeLimit = 2f;
+    public float reelSpeed = 0.4f;
+
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            HandleInput();
+        }
+
+        switch (currentState)
+        {
+            case FishingState.Waiting:
+                waitTimer -= Time.deltaTime;
+                if (waitTimer <= 0)
+                {
+                    FishBite();
+                }
+                break;
+
+            case FishingState.Bite:
+                biteTimer -= Time.deltaTime;
+                if (biteTimer <= 0)
+                {
+                    FailFishing("反応が遅い！");
+                }
+                break;
+
+            case FishingState.Reeling:
+                reelProgress += reelSpeed * Time.deltaTime;
+                if (reelProgress >= 1f)
+                {
+                    SuccessFishing();
+                }
+                break;
+        }
+    }
+
+    void HandleInput()
+    {
+        switch (currentState)
+        {
+            case FishingState.Idle:
+                CastLine();
+                break;
+
+            case FishingState.Bite:
+                StartReeling();
+                break;
+
+            case FishingState.Reeling:
+                reelProgress += 0.1f;
+                Debug.Log("巻いている... " + Mathf.Clamp01(reelProgress));
+                break;
+        }
+    }
+
+    void CastLine()
+    {
+        if (!isInWaterZone)
+        {
+            Debug.Log("水辺じゃないと釣れない！");
+            return;
+        }
+
+        Debug.Log("キャスト！");
+        currentState = FishingState.Waiting;
+
+        waitTimer = Random.Range(minWaitTime, maxWaitTime);
+    }
+
+    void FishBite()
+    {
+        Debug.Log("ヒット！スペースを押せ！");
+        currentState = FishingState.Bite;
+
+        biteTimer = biteTimeLimit;
+    }
+
+    void StartReeling()
+    {
+        Debug.Log("巻き開始！");
+        currentState = FishingState.Reeling;
+
+        reelProgress = 0f;
+    }
+
+    void SuccessFishing()
+    {
+        Debug.Log("魚ゲット！🐟");
+        currentState = FishingState.Idle;
+    }
+
+    void FailFishing(string reason)
+    {
+        Debug.Log("失敗: " + reason);
+        currentState = FishingState.Idle;
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Water"))
+        {
+            isInWaterZone = true;
+            Debug.Log("水辺に入った");
+        }
+    }
+
+    void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Water"))
+        {
+            isInWaterZone = false;
+            Debug.Log("水辺から離れた");
+        }
+    }
+}
