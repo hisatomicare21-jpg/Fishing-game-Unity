@@ -22,10 +22,20 @@ public class FishingSystem : MonoBehaviour
         Reeling
     }
 
-string [] fishNames = { "Anchovy", "Bream", "Largemouth Bass", "Red Snapper", "Trout", "Carp", "Goldfish", "Yellowfin Tuna", "Eel", "Whiptail Catfish" };
-float [] fishMSizes = {2f, 5f, 8f, 20f, 10f, 2f, 1f, 50f, 3f, 4f};
-float [] fishSSizes = {0.5f, 2f, 4f, 15f, 5f, 1f, 0.5f, 30f, 2f, 3f};
-int [] fishRarities = {1, 1, 1, 1, 1, 1, 2, 3, 4, 5};
+ FishData[] fishDatabase = {
+        new FishData("Anchovy",          0.5f,  1),
+        new FishData("Bream",            2f,    1),
+        new FishData("Largemouth Bass",  4f,    1),
+        new FishData("Red Snapper",      15f,   1),
+        new FishData("Trout",            5f,    1),
+        new FishData("Carp",             1f,    1),
+        new FishData("Goldfish",         0.5f,  2),
+        new FishData("Yellowfin Tuna",   30f,   3),
+        new FishData("Eel",              2f,    4),
+        new FishData("Whiptail Catfish", 3f,    5),
+    };
+    FishData currentFish;
+
     public FishingState currentState = FishingState.Idle;
 
     float waitTimer;
@@ -138,10 +148,11 @@ int [] fishRarities = {1, 1, 1, 1, 1, 1, 2, 3, 4, 5};
 
     void OnTriggerEnter(Collider other)
     {
+        Debug.Log("水辺に入った");
         if (other.CompareTag("Water"))
         {
             isInWaterZone = true;
-            Debug.Log("水辺に入った");
+            
         }
     }
 
