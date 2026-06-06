@@ -1,20 +1,24 @@
 using UnityEngine;
+using System.Linq;
 
-public class FishData
-    {
-        public string name;
-        public float size;
-        public int rarity;
-    public FishData(string name, float size, int rarity)
-        {
-            this.name = name;
-            this.size = size;
-            this.rarity = rarity;
-        }
-    }
 public class FishingSystem : MonoBehaviour
 {
-    public enum FishingState
+    int totalWeight => fishDatabase.Sum(item =>item.rarity);
+    FishData Draw() { // ルーレット方式で魚を選ぶ
+        float randomValue = Random.Range(0, totalWeight);
+        float cumulativeWeight = 0f;
+
+        foreach (var fish in fishDatabase)
+        {
+            cumulativeWeight += fish.rarity;
+            if (randomValue < cumulativeWeight)
+            {
+                return fish;
+            }
+        }
+        return null; // 万が一のため
+    }
+       public enum FishingState
     {
         Idle,
         Waiting,
@@ -22,21 +26,24 @@ public class FishingSystem : MonoBehaviour
         Reeling
     }
 
+
+
  FishData[] fishDatabase = {
-        new FishData("Anchovy",          0.5f,  1),
-        new FishData("Bream",            2f,    1),
-        new FishData("Largemouth Bass",  4f,    1),
-        new FishData("Red Snapper",      15f,   1),
-        new FishData("Trout",            5f,    1),
-        new FishData("Carp",             1f,    1),
-        new FishData("Goldfish",         0.5f,  2),
-        new FishData("Yellowfin Tuna",   30f,   3),
+        new FishData("Anchovy",          0.5f,  13),
+        new FishData("Bream",            2f,    13),
+        new FishData("Largemouth Bass",  4f,    13),
+        new FishData("Red Snapper",      15f,   13),
+        new FishData("Trout",            5f,    13),
+        new FishData("Carp",             1f,    13),
+        new FishData("Goldfish",         0.5f,  10),
+        new FishData("Yellowfin Tuna",   30f,   6),
         new FishData("Eel",              2f,    4),
-        new FishData("Whiptail Catfish", 3f,    5),
+        new FishData("Whiptail Catfish", 3f,    2),
     };
     FishData currentFish;
 
     public FishingState currentState = FishingState.Idle;
+    private Animator Valolant_fun_XD;
 
     float waitTimer;
     float biteTimer;
@@ -50,10 +57,16 @@ public class FishingSystem : MonoBehaviour
     public float biteTimeLimit = 2f;
     public float reelSpeed = 0.4f;
 
+    void Start()
+    {
+        Valolant_fun_XD = GetComponent<Animator>();
+    }   
+
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
+            Debug.Log("Debug log naninisiyoukana");
             HandleInput();
         }
 
@@ -64,6 +77,7 @@ public class FishingSystem : MonoBehaviour
                 if (waitTimer <= 0)
                 {
                     FishBite();
+                    currentFish =Draw();
                 }
                 break;
 
@@ -114,6 +128,7 @@ public class FishingSystem : MonoBehaviour
 
         Debug.Log("キャスト！");
         currentState = FishingState.Waiting;
+        Valolant_fun_XD.SetBool("Fishing rn", true);
 
         waitTimer = Random.Range(minWaitTime, maxWaitTime);
     }
@@ -136,7 +151,7 @@ public class FishingSystem : MonoBehaviour
 
     void SuccessFishing()
     {
-        Debug.Log("魚ゲット！🐟");
+        Debug.Log("魚ゲット！: " + currentFish.name);
         currentState = FishingState.Idle;
     }
 
